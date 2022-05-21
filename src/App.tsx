@@ -1,138 +1,34 @@
 import { Global } from "@emotion/react";
-import {
-  Box,
-  createTheme,
-  Fab,
-  ThemeProvider,
-  Typography,
-} from "@mui/material";
-import { Fragment, useCallback, useEffect, useState } from "react";
 import "@fontsource/oswald";
-import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import countapi from "countapi-js";
+import { createTheme, ThemeProvider } from "@mui/material";
+import { Fragment } from "react";
+import { HelmetProvider } from "react-helmet-async";
+import { LikesProvider } from "./hooks/useLikes";
+import { IndexPage } from "./IndexPage";
+import { LikePage } from "./LikePage";
+import { ViewPage } from "./ViewPage";
 
 const getParameters = () => {
   const url = new URL(document.URL);
-  const namespace = url.searchParams.get("ns") ?? "default";
-  const key = url.searchParams.get("k") ?? "";
-  const mode = url.searchParams.get("m") ?? "";
-  return { namespace, key, mode };
-};
-
-const ErrorPage = () => {
-  return (
-    <Box
-      sx={{
-        alignItems: "center",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: "0.5rem",
-      }}
-    >
-      <Typography variant="h4">Likes</Typography>
-      <Typography color="error">
-        Unable to view page. The "key" parameter is required.
-      </Typography>
-    </Box>
-  );
-};
-
-const HitPage = ({
-  namespace,
-  countKey,
-}: {
-  namespace: string;
-  countKey: string;
-}) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    (async () => {
-      const { value } = await countapi.get(namespace, countKey);
-      setCount(value);
-    })();
-  }, [countKey, namespace]);
-
-  const hit = async () => {
-    const { value } = await countapi.hit(namespace, countKey);
-    setCount(value);
+  const room = {
+    namespace: url.searchParams.get("ns") ?? "default",
+    key: url.searchParams.get("k") ?? "",
   };
-
-  return (
-    <Box
-      sx={{
-        alignItems: "center",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: "0.5rem",
-      }}
-    >
-      <Typography variant="h4">Likes</Typography>
-      <Box>
-        <Fab
-          color="primary"
-          size="large"
-          sx={{ height: "6rem", width: "6rem" }}
-          onClick={() => hit()}
-        >
-          <ThumbUpIcon sx={{ height: "2rem", width: "2rem" }} />
-        </Fab>
-      </Box>
-      <Box>
-        <Typography>{count}</Typography>
-      </Box>
-    </Box>
-  );
-};
-
-const ViewPage = ({
-  namespace,
-  countKey,
-}: {
-  namespace: string;
-  countKey: string;
-}) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const update = async () => {
-      const { value } = await countapi.get(namespace, countKey);
-      setCount(value);
-    };
-    const id = setInterval(() => update(), 30000);
-    update();
-    return () => clearInterval(id);
-  }, [namespace, countKey]);
-
-  return (
-    <Box
-      sx={{
-        alignItems: "center",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: "0.5rem",
-      }}
-    >
-      <Box>
-        <Typography variant="h1">{count}</Typography>
-      </Box>
-    </Box>
-  );
+  const mode = url.searchParams.get("m") ?? "";
+  return { room, mode };
 };
 
 export const App = () => {
+  const { room, mode } = getParameters();
   const theme = createTheme({
+    palette: {
+      mode: "dark",
+    },
     typography: {
       fontFamily: `"Oswald", sans-serif`,
+      fontSize: 16,
     },
   });
-  const { namespace, key, mode } = getParameters();
 
   return (
     <Fragment>
@@ -142,6 +38,8 @@ export const App = () => {
             height: "100%",
           },
           body: {
+            background: "#222",
+            color: "#fff",
             height: "100%",
             margin: 0,
           },
@@ -150,17 +48,17 @@ export const App = () => {
           },
         }}
       />
-      <ThemeProvider theme={theme}>
-        {key ? (
-          mode === "v" ? (
-            <ViewPage namespace={namespace} countKey={key} />
+      <HelmetProvider>
+        <ThemeProvider theme={theme}>
+          {room.key ? (
+            <LikesProvider room={room}>
+              {mode === "v" ? <ViewPage /> : <LikePage />}
+            </LikesProvider>
           ) : (
-            <HitPage namespace={namespace} countKey={key} />
-          )
-        ) : (
-          <ErrorPage />
-        )}
-      </ThemeProvider>
+            <IndexPage />
+          )}
+        </ThemeProvider>
+      </HelmetProvider>
     </Fragment>
   );
 };
