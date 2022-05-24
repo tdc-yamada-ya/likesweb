@@ -9,10 +9,12 @@ export const Count = ({ minLength = 5 }: { minLength?: number }) => {
     <Fragment>
       <div
         css={{
+          background: "rgba(0, 0, 0, 0.8)",
           fontSize: "48px",
           display: "flex",
           flexDirection: "column",
           gap: "0.2em",
+          overflow: "visible",
         }}
       >
         <DSEG color="#64ffda" value={"LIKES"} />

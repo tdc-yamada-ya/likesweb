@@ -1,7 +1,9 @@
 import "@fontsource/dseg14";
 
 export const DSEG = ({ color, value }: { color: string; value: string }) => (
-  <div css={{ fontFamily: "DSEG14", position: "relative" }}>
+  <div
+    css={{ fontFamily: "DSEG14", overflow: "visible", position: "relative" }}
+  >
     <div css={{ opacity: 0.2, position: "absolute" }}>
       {"8".repeat(value.length)}
     </div>
